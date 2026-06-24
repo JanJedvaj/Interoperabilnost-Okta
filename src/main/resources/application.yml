@@ -1,0 +1,37 @@
+spring:
+  application:
+    name: interoperability-okta
+  datasource:
+    url: jdbc:postgresql://localhost:5432/${DB_NAME:interoperability_okta}
+    username: ${DB_USER:postgres}
+    password: ${DB_PASSWORD:postgres}
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+  graphql:
+    graphiql:
+      enabled: true
+
+server:
+  port: 8080
+
+grpc:
+  server:
+    port: 9090
+
+cxf:
+  path: /ws
+
+app:
+  api-mode: ${APP_API_MODE:LOCAL}
+  okta:
+    domain: ${OKTA_DOMAIN:}
+    api-token: ${OKTA_API_TOKEN:}
+    applications-path: /api/v1/apps
+
+jwt:
+  secret: ${JWT_SECRET:change-this-development-secret-before-using-the-application}
+  access-token-minutes: 15
+  refresh-token-days: 7
+
