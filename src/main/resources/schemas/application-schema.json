@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://algebra.hr/iis/okta/application-schema.json",
+  "title": "Application import document",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "name",
+    "label",
+    "status",
+    "signOnMode"
+  ],
+  "properties": {
+    "externalId": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "minLength": 1,
+      "maxLength": 120
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 120
+    },
+    "label": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "status": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 60
+    },
+    "signOnMode": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 80
+    }
+  }
+}

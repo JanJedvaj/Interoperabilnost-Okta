@@ -1,5 +1,6 @@
 package hr.algebra.iis.okta.common;
 
+import hr.algebra.iis.okta.application.validation.ApplicationImportValidationException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
@@ -63,6 +64,22 @@ public class GlobalExceptionHandler {
                         HttpStatus.CONFLICT.getReasonPhrase(),
                         "The application could not be saved because it violates a database constraint",
                         request.getRequestURI()
+                ));
+    }
+
+    @ExceptionHandler(ApplicationImportValidationException.class)
+    public ResponseEntity<ApiErrorResponse> handleImportValidation(
+            ApplicationImportValidationException exception,
+            HttpServletRequest request
+    ) {
+        return ResponseEntity
+                .badRequest()
+                .body(ApiErrorResponse.withValidationErrors(
+                        HttpStatus.BAD_REQUEST.value(),
+                        HttpStatus.BAD_REQUEST.getReasonPhrase(),
+                        exception.getMessage(),
+                        request.getRequestURI(),
+                        exception.getValidationErrors()
                 ));
     }
 }
