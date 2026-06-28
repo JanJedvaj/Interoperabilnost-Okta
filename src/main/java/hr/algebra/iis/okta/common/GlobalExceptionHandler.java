@@ -1,6 +1,8 @@
 package hr.algebra.iis.okta.common;
 
 import hr.algebra.iis.okta.application.validation.ApplicationImportValidationException;
+import hr.algebra.iis.okta.okta.exception.OktaApiException;
+import hr.algebra.iis.okta.okta.exception.OktaClientException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
@@ -80,6 +82,46 @@ public class GlobalExceptionHandler {
                         exception.getMessage(),
                         request.getRequestURI(),
                         exception.getValidationErrors()
+                ));
+    }
+
+    @ExceptionHandler(OktaApiException.class)
+    public ResponseEntity<ApiErrorResponse> handleOktaApi(
+            OktaApiException exception,
+            HttpServletRequest request
+    ) {
+        HttpStatus status = HttpStatus.BAD_GATEWAY;
+
+        if (exception.getStatusCode() == 401 || exception.getStatusCode() == 403) {
+            status = HttpStatus.FORBIDDEN;
+        } else if (exception.getStatusCode() == 404) {
+            status = HttpStatus.NOT_FOUND;
+        } else if (exception.getStatusCode() == 429) {
+            status = HttpStatus.TOO_MANY_REQUESTS;
+        }
+
+        return ResponseEntity
+                .status(status)
+                .body(ApiErrorResponse.of(
+                        status.value(),
+                        status.getReasonPhrase(),
+                        "Okta API returned status %d".formatted(exception.getStatusCode()),
+                        request.getRequestURI()
+                ));
+    }
+
+    @ExceptionHandler(OktaClientException.class)
+    public ResponseEntity<ApiErrorResponse> handleOktaClient(
+            OktaClientException exception,
+            HttpServletRequest request
+    ) {
+        return ResponseEntity
+                .status(HttpStatus.BAD_GATEWAY)
+                .body(ApiErrorResponse.of(
+                        HttpStatus.BAD_GATEWAY.value(),
+                        HttpStatus.BAD_GATEWAY.getReasonPhrase(),
+                        exception.getMessage(),
+                        request.getRequestURI()
                 ));
     }
 }

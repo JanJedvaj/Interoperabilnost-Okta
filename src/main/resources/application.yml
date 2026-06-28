@@ -29,9 +29,9 @@ app:
     domain: ${OKTA_DOMAIN:}
     api-token: ${OKTA_API_TOKEN:}
     applications-path: /api/v1/apps
+    timeout: ${OKTA_TIMEOUT:20s}
 
 jwt:
   secret: ${JWT_SECRET:change-this-development-secret-before-using-the-application}
   access-token-minutes: 15
   refresh-token-days: 7
-
