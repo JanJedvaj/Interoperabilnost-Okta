@@ -15,6 +15,13 @@ public record ApplicationResponse(
         OffsetDateTime updatedAt
 ) {
 
+    public String resourceId() {
+        if (id != null) {
+            return id.toString();
+        }
+        return externalId;
+    }
+
     public static ApplicationResponse fromEntity(ApplicationEntity entity) {
         return new ApplicationResponse(
                 entity.getId(),

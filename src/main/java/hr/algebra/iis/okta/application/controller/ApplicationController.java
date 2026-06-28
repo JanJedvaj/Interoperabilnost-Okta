@@ -2,7 +2,7 @@ package hr.algebra.iis.okta.application.controller;
 
 import hr.algebra.iis.okta.application.dto.ApplicationRequest;
 import hr.algebra.iis.okta.application.dto.ApplicationResponse;
-import hr.algebra.iis.okta.application.service.ApplicationService;
+import hr.algebra.iis.okta.application.provider.ApplicationProvider;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,38 +22,38 @@ import java.util.List;
 @RequestMapping("/api/applications")
 public class ApplicationController {
 
-    private final ApplicationService applicationService;
+    private final ApplicationProvider applicationProvider;
 
-    public ApplicationController(ApplicationService applicationService) {
-        this.applicationService = applicationService;
+    public ApplicationController(ApplicationProvider applicationProvider) {
+        this.applicationProvider = applicationProvider;
     }
 
     @GetMapping
     public List<ApplicationResponse> findAll() {
-        return applicationService.findAll();
+        return applicationProvider.findAll();
     }
 
     @GetMapping("/{id}")
-    public ApplicationResponse findById(@PathVariable Long id) {
-        return applicationService.findById(id);
+    public ApplicationResponse findById(@PathVariable String id) {
+        return applicationProvider.findById(id);
     }
 
     @PostMapping
     public ResponseEntity<ApplicationResponse> create(@Valid @RequestBody ApplicationRequest request) {
-        ApplicationResponse response = applicationService.create(request);
+        ApplicationResponse response = applicationProvider.create(request);
         return ResponseEntity
-                .created(URI.create("/api/applications/" + response.id()))
+                .created(URI.create("/api/applications/" + response.resourceId()))
                 .body(response);
     }
 
     @PutMapping("/{id}")
-    public ApplicationResponse update(@PathVariable Long id, @Valid @RequestBody ApplicationRequest request) {
-        return applicationService.update(id, request);
+    public ApplicationResponse update(@PathVariable String id, @Valid @RequestBody ApplicationRequest request) {
+        return applicationProvider.update(id, request);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
-        applicationService.delete(id);
+    public ResponseEntity<Void> delete(@PathVariable String id) {
+        applicationProvider.delete(id);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 }

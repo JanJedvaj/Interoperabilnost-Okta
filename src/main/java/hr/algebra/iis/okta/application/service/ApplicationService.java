@@ -45,6 +45,17 @@ public class ApplicationService {
         return ApplicationResponse.fromEntity(applicationRepository.save(entity));
     }
 
+    public ApplicationResponse upsertExternal(ApplicationRequest request) {
+        String externalId = normalizeOptional(request.externalId());
+        if (externalId == null) {
+            return create(request);
+        }
+
+        return applicationRepository.findByExternalId(externalId)
+                .map(existing -> updateExisting(existing, request))
+                .orElseGet(() -> create(request));
+    }
+
     public ApplicationResponse update(Long id, ApplicationRequest request) {
         ApplicationEntity entity = findEntityById(id);
         entity.setExternalId(normalizeOptional(request.externalId()));
@@ -64,6 +75,14 @@ public class ApplicationService {
     private ApplicationEntity findEntityById(Long id) {
         return applicationRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Application with id %d was not found".formatted(id)));
+    }
+
+    private ApplicationResponse updateExisting(ApplicationEntity entity, ApplicationRequest request) {
+        entity.setName(request.name());
+        entity.setLabel(request.label());
+        entity.setStatus(request.status());
+        entity.setSignOnMode(request.signOnMode());
+        return ApplicationResponse.fromEntity(applicationRepository.save(entity));
     }
 
     private static String normalizeOptional(String value) {

@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Component
-public class OktaApplicationsClient {
+public class OktaApplicationsClient implements OktaApplicationsApi {
 
     private static final String ACCEPT = "Accept";
     private static final String AUTHORIZATION = "Authorization";
@@ -46,6 +46,7 @@ public class OktaApplicationsClient {
         this.oktaApplicationMapper = oktaApplicationMapper;
     }
 
+    @Override
     public List<OktaApplicationResponse> listApplications(Integer limit) {
         List<OktaApplicationResponse> applications = new ArrayList<>();
         URI nextUri = UriComponentsBuilder
@@ -77,12 +78,14 @@ public class OktaApplicationsClient {
         return applications;
     }
 
+    @Override
     public OktaApplicationResponse getApplication(String id) {
         HttpResponse<String> response = send(requestBuilder(applicationUrl(id)).GET().build());
         ensureSuccess(response, 200);
         return parseApplication(response.body());
     }
 
+    @Override
     public OktaApplicationResponse createApplication(OktaApplicationRequest request) {
         HttpResponse<String> response = send(requestBuilder(applicationsUrl())
                 .POST(HttpRequest.BodyPublishers.ofString(writeJson(request)))
@@ -91,6 +94,7 @@ public class OktaApplicationsClient {
         return parseApplication(response.body());
     }
 
+    @Override
     public OktaApplicationResponse replaceApplication(String id, OktaApplicationRequest request) {
         HttpResponse<String> response = send(requestBuilder(applicationUrl(id))
                 .PUT(HttpRequest.BodyPublishers.ofString(writeJson(request)))
@@ -99,6 +103,7 @@ public class OktaApplicationsClient {
         return parseApplication(response.body());
     }
 
+    @Override
     public void deleteApplication(String id) {
         HttpResponse<String> response = send(requestBuilder(applicationUrl(id)).DELETE().build());
         ensureSuccess(response, 204);
