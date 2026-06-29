@@ -8,6 +8,7 @@ import hr.algebra.iis.okta.okta.dto.OktaApplicationRequest;
 import hr.algebra.iis.okta.okta.dto.OktaApplicationResponse;
 import hr.algebra.iis.okta.okta.exception.OktaApiException;
 import hr.algebra.iis.okta.okta.exception.OktaClientException;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -36,7 +37,7 @@ public class OktaApplicationsClient implements OktaApplicationsApi {
 
     public OktaApplicationsClient(
             OktaProperties oktaProperties,
-            HttpClient httpClient,
+            @Qualifier("oktaHttpClient") HttpClient httpClient,
             ObjectMapper objectMapper,
             OktaApplicationMapper oktaApplicationMapper
     ) {

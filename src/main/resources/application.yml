@@ -30,6 +30,9 @@ app:
     api-token: ${OKTA_API_TOKEN:}
     applications-path: /api/v1/apps
     timeout: ${OKTA_TIMEOUT:20s}
+  dhmz:
+    observations-url: ${DHMZ_OBSERVATIONS_URL:https://vrijeme.hr/hrvatska_n.xml}
+    timeout: ${DHMZ_TIMEOUT:20s}
 
 jwt:
   secret: ${JWT_SECRET:change-this-development-secret-before-using-the-application}

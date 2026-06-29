@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package dhmz.weather;
+
+option java_multiple_files = true;
+option java_package = "hr.algebra.iis.okta.grpc.dhmz";
+option java_outer_classname = "DhmzWeatherProto";
+
+service DhmzWeatherService {
+  rpc SearchCities(SearchCitiesRequest) returns (SearchCitiesResponse);
+}
+
+message SearchCitiesRequest {
+  string query = 1;
+}
+
+message SearchCitiesResponse {
+  repeated WeatherCity cities = 1;
+}
+
+message WeatherCity {
+  string city = 1;
+  string temperature = 2;
+  string humidity = 3;
+  string pressure = 4;
+  string pressure_tendency = 5;
+  string wind_direction = 6;
+  string wind_speed = 7;
+  string weather = 8;
+}
