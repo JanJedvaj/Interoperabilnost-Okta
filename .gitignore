@@ -1,22 +1,18 @@
-# Gradle
 .gradle/
 build/
 !gradle/wrapper/gradle-wrapper.jar
 
-# IntelliJ IDEA
 .idea/
 *.iws
 *.iml
 *.ipr
 out/
 
-# Other IDEs
 .classpath
 .project
 .settings/
 .vscode/
 
-# Local configuration and secrets
 .env
 .env.*
 !.env.example
@@ -24,17 +20,8 @@ application-local.properties
 application-local.yml
 application-local.yaml
 
-# Operating system files
 .DS_Store
 Thumbs.db
 
-# Agent/Codex working files
-agents.md
-AGENTS.md
-.agents/
-.codex/
-
-# Logs and temporary files
 *.log
 tmp/
-

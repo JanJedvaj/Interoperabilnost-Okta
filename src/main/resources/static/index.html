@@ -1,165 +1,464 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="hr">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Interoperability Okta</title>
-    <link rel="stylesheet" href="/app.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IIS Projekt — Applications</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<header class="hero">
-    <div>
-        <p class="eyebrow">Information Systems Interoperability</p>
-        <h1>Okta Applications Console</h1>
-        <p class="subtitle">
-            REST, SOAP, gRPC/DHMZ, GraphQL i JWT role u jednom demo sučelju.
-        </p>
-    </div>
-    <div class="session-card">
-        <span id="roleBadge" class="badge">Niste prijavljeni</span>
-        <button id="logoutButton" class="secondary hidden">Logout</button>
-    </div>
-</header>
 
-<main>
-    <section id="loginPanel" class="panel login-panel">
-        <div>
-            <h2>Login</h2>
-            <p>Demo korisnici: <code>reader / reader123</code> ili <code>admin / admin123</code>.</p>
+<div id="loginSection">
+    <div class="login-card">
+
+        <div class="login-brand">
+            <h1>IIS Applications</h1>
+            <p>Prijavite se u vaš račun</p>
         </div>
-        <form id="loginForm" class="grid-form">
-            <label>
-                Username
-                <input id="username" autocomplete="username" value="admin" required>
-            </label>
-            <label>
-                Password
-                <input id="password" type="password" autocomplete="current-password" value="admin123" required>
-            </label>
-            <button type="submit">Prijava</button>
-        </form>
-    </section>
 
-    <section id="appPanel" class="hidden">
-        <nav class="tabs" aria-label="Demo modules">
-            <button class="tab active" data-tab="applications">Applications</button>
-            <button class="tab" data-tab="import">JSON/XML Import</button>
-            <button class="tab" data-tab="okta">Okta Sync</button>
-            <button class="tab" data-tab="soap">SOAP XPath</button>
-            <button class="tab" data-tab="weather">DHMZ</button>
-            <button class="tab" data-tab="graphql">GraphQL</button>
+        <input type="text" id="username" placeholder="Korisničko ime">
+        <input type="password" id="password" placeholder="Lozinka">
+        <button class="btn-primary btn-full" onclick="login()">Prijavi se</button>
+        <p id="loginError" class="error"></p>
+
+        <p class="register-link-row">
+            Nemate račun?
+            <a href="#" onclick="event.preventDefault(); document.getElementById('regFormToggle').classList.toggle('hidden')">
+                Registrirajte se
+            </a>
+        </p>
+
+        <div id="regFormToggle" class="hidden">
+            <hr class="section-divider">
+            <p class="reg-heading">Registracija</p>
+            <input type="text" id="regUsername" placeholder="Korisničko ime">
+            <input type="password" id="regPassword" placeholder="Lozinka">
+            <select id="regRole">
+                <option value="READ_ONLY">READ_ONLY</option>
+                <option value="FULL_ACCESS">FULL_ACCESS</option>
+            </select>
+            <button class="btn-success btn-full" onclick="register()">Registriraj se</button>
+            <p id="regMsg"></p>
+        </div>
+
+    </div>
+</div>
+
+<div id="appSection" class="hidden">
+
+    <aside class="sidebar">
+        <div class="sidebar-brand">
+            <span>IIS Applications</span>
+        </div>
+
+        <nav class="tabs sidebar-nav">
+            <button class="tab active" onclick="showTab('applications', event)">Aplikacije</button>
+            <button class="tab" onclick="showTab('weather', event)">Temperatura</button>
+            <button class="tab" onclick="showTab('soap', event)">SOAP</button>
+            <button class="tab" onclick="showTab('graphql', event)">GraphQL</button>
+            <button class="tab" onclick="showTab('validate', event)">Validacija</button>
+            <button class="tab" onclick="showTab('okta', event)">Okta</button>
         </nav>
 
-        <section class="panel tab-panel" data-panel="applications">
-            <div class="panel-title">
-                <div>
-                    <h2>Applications</h2>
-                    <p>Read radi za obje role; write akcije su dostupne samo za <code>FULL_ACCESS</code>.</p>
+        <div class="sidebar-footer">
+            <div class="sidebar-user-info">
+                <span id="userInfo"></span>
+            </div>
+            <button class="btn-token-refresh" onclick="handleRefreshToken()">Osvježi token</button>
+            <button onclick="logout()">Odjava</button>
+        </div>
+    </aside>
+
+    <main class="main-content">
+
+        <div id="tab-applications">
+
+            <div id="createForm" class="card hidden">
+                <h3>Nova aplikacija</h3>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="field-label" for="newName">Naziv</label>
+                        <input type="text" id="newName" placeholder="Naziv aplikacije">
+                    </div>
+                    <div class="form-group">
+                        <label class="field-label" for="newExternalId">External ID</label>
+                        <input type="text" id="newExternalId" placeholder="npr. okta-app-001">
+                    </div>
                 </div>
-                <button id="loadApplicationsButton">Učitaj aplikacije</button>
-            </div>
 
-            <form id="applicationForm" class="grid-form full-access-only">
-                <input type="hidden" id="applicationId">
-                <label>External ID <input id="externalId" placeholder="okta-app-id"></label>
-                <label>Name <input id="name" placeholder="bookmark_app" required></label>
-                <label>Label <input id="label" placeholder="Demo App" required></label>
-                <label>Status <input id="status" value="ACTIVE" required></label>
-                <label>Sign-on mode <input id="signOnMode" value="BOOKMARK" required></label>
-                <div class="button-row">
-                    <button type="submit">Spremi</button>
-                    <button type="button" id="resetApplicationForm" class="secondary">Reset</button>
+                <label class="field-label" for="newLabel">Labela</label>
+                <input type="text" id="newLabel" placeholder="Labela aplikacije">
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="field-label" for="newStatus">Status</label>
+                        <select id="newStatus">
+                            <option value="open">open</option>
+                            <option value="pending">pending</option>
+                            <option value="solved">solved</option>
+                            <option value="closed">closed</option>
+                            <option value="ACTIVE">ACTIVE</option>
+                            <option value="INACTIVE">INACTIVE</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="field-label" for="newSignOnMode">Sign-on mode</label>
+                        <select id="newSignOnMode">
+                            <option value="normal">normal</option>
+                            <option value="OPENID_CONNECT">OPENID_CONNECT</option>
+                            <option value="SAML_2_0">SAML_2_0</option>
+                            <option value="BOOKMARK">BOOKMARK</option>
+                        </select>
+                    </div>
                 </div>
-            </form>
 
-            <div id="applicationsList" class="cards"></div>
-        </section>
-
-        <section class="panel tab-panel hidden" data-panel="import">
-            <h2>JSON/XML Import</h2>
-            <p>Dokument se validira prije spremanja u bazu.</p>
-            <div class="split">
-                <form id="jsonImportForm">
-                    <label>JSON document</label>
-                    <textarea id="jsonImportDocument" rows="12">{
-  "externalId": "json-demo",
-  "name": "bookmark_app",
-  "label": "JSON Demo",
-  "status": "ACTIVE",
-  "signOnMode": "BOOKMARK"
-}</textarea>
-                    <button class="full-access-only" type="submit">Import JSON</button>
-                </form>
-                <form id="xmlImportForm">
-                    <label>XML document</label>
-                    <textarea id="xmlImportDocument" rows="12">&lt;application&gt;
-  &lt;externalId&gt;xml-demo&lt;/externalId&gt;
-  &lt;name&gt;bookmark_app&lt;/name&gt;
-  &lt;label&gt;XML Demo&lt;/label&gt;
-  &lt;status&gt;ACTIVE&lt;/status&gt;
-  &lt;signOnMode&gt;BOOKMARK&lt;/signOnMode&gt;
-&lt;/application&gt;</textarea>
-                    <button class="full-access-only" type="submit">Import XML</button>
-                </form>
+                <button class="btn-success" onclick="createApplicationFromForm()">Spremi aplikaciju</button>
+                <p id="createMsg"></p>
             </div>
-        </section>
 
-        <section class="panel tab-panel hidden" data-panel="okta">
-            <h2>Okta</h2>
-            <p>Backend poziva Oktu s <code>Authorization: SSWS {OKTA_API_TOKEN}</code>. Token nikad ne ide u browser.</p>
-            <div class="button-row">
-                <button id="loadOktaButton">Učitaj direktno iz Okte</button>
-                <button id="syncOktaButton" class="full-access-only">Sync Okta → Local DB</button>
+            <div class="card">
+                <h3>Lista aplikacijaa</h3>
+
+                <table>
+                    <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Naziv</th>
+                        <th>Status</th>
+                        <th>Sign-on mode</th>
+                        <th>External ID</th>
+                        <th id="actionsHeader" class="hidden">Akcije</th>
+                    </tr>
+                    </thead>
+                    <tbody id="applicationsTable"></tbody>
+                </table>
             </div>
-            <div id="oktaResult" class="cards"></div>
-        </section>
 
-        <section class="panel tab-panel hidden" data-panel="soap">
-            <h2>SOAP XPath search</h2>
-            <p>SOAP servis generira XML snapshot, validira ga i pretražuje XPathom.</p>
-            <form id="soapForm" class="inline-form">
-                <input id="soapSearchTerm" placeholder="npr. CRM, ACTIVE, SAML" required>
-                <button type="submit">Pretraži SOAP</button>
-            </form>
-            <pre id="soapResult" class="result-box"></pre>
-        </section>
+        </div>
 
-        <section class="panel tab-panel hidden" data-panel="weather">
-            <h2>DHMZ weather</h2>
-            <p>Web klijent koristi REST adapter, a backend ima gRPC servis na portu 9090.</p>
-            <form id="weatherForm" class="inline-form">
-                <input id="weatherQuery" placeholder="zag" value="zag">
-                <button type="submit">Pretraži gradove</button>
-            </form>
-            <div id="weatherResult" class="cards"></div>
-        </section>
+        <div id="tab-weather" class="hidden">
+            <div class="card">
+                <h3>Temperatura (via gRPC)</h3>
+                <input type="text" id="cityInput" placeholder="Unesi grad (npr. Zagreb)">
+                <button class="btn-primary" onclick="getWeather()">Dohvati</button>
+                <div id="weatherResult"></div>
+            </div>
+        </div>
 
-        <section class="panel tab-panel hidden" data-panel="graphql">
-            <h2>GraphQL</h2>
-            <p>Query radi za obje role, mutation samo za <code>FULL_ACCESS</code>.</p>
-            <form id="graphqlForm">
-                <textarea id="graphqlQuery" rows="12">query {
-  applications {
-    resourceId
-    externalId
-    name
-    label
-    status
-    signOnMode
-  }
-}</textarea>
-                <button type="submit">Execute</button>
-            </form>
-            <pre id="graphqlResult" class="result-box"></pre>
-        </section>
-    </section>
+        <div id="tab-soap" class="hidden">
+            <div class="card">
+                <h3>SOAP Pretraga</h3>
+                <input type="text" id="soapKeyword" placeholder="Unesite pojam">
+                <button class="btn-primary" onclick="searchSoap()">Pretraži</button>
+                <div id="soapResult"></div>
+            </div>
+        </div>
 
-    <section class="panel">
-        <h2>Status</h2>
-        <pre id="statusBox" class="result-box">Spremno.</pre>
-    </section>
-</main>
+        <div id="tab-graphql" class="hidden">
 
-<script src="/app.js"></script>
+            <div class="gql-subtab-bar">
+                <button class="gql-subtab active" onclick="gqlShowSubtab('all', event)">SVI TIKETI</button>
+                <button class="gql-subtab" onclick="gqlShowSubtab('byid', event)">PO ID</button>
+                <button class="gql-subtab gql-admin-only" onclick="gqlShowSubtab('add', event)">DODAJ</button>
+                <button class="gql-subtab gql-admin-only" onclick="gqlShowSubtab('edit', event)">UREDI</button>
+                <button class="gql-subtab gql-admin-only" onclick="gqlShowSubtab('delete', event)">BRIŠI</button>
+            </div>
+
+            <div id="gql-panel-all" class="card gql-panel">
+                <h3>Svi aplikacije</h3>
+                <p class="gql-hint">Odaberite polja koja želite dohvatiti:</p>
+                <div class="gql-fields-row">
+                    <label class="gql-chk"><input type="checkbox" id="gqlf-id" checked onchange="gqlUpdateAllPreview()"> ID</label>
+                    <label class="gql-chk"><input type="checkbox" id="gqlf-name" checked onchange="gqlUpdateAllPreview()"> Name</label>
+                    <label class="gql-chk"><input type="checkbox" id="gqlf-status" checked onchange="gqlUpdateAllPreview()"> Status</label>
+                    <label class="gql-chk"><input type="checkbox" id="gqlf-signOnMode" checked onchange="gqlUpdateAllPreview()"> SignOnMode</label>
+                    <label class="gql-chk"><input type="checkbox" id="gqlf-label" checked onchange="gqlUpdateAllPreview()"> Label</label>
+                    <label class="gql-chk"><input type="checkbox" id="gqlf-email" checked onchange="gqlUpdateAllPreview()"> ExternalId</label>
+                </div>
+                <pre id="gql-all-preview" class="gql-query-preview">{ applications { id name status signOnMode label externalId } }</pre>
+                <button class="btn-primary gql-run-btn" onclick="gqlRunAll()">&#9654; Pokreni</button>
+                <pre id="gql-all-result" class="gql-code-dark"></pre>
+            </div>
+
+            <div id="gql-panel-byid" class="card gql-panel hidden">
+                <h3>Aplikacija po ID-u</h3>
+                <label class="field-label" for="gql-byid-input">ID aplikacijaa</label>
+                <input type="number" id="gql-byid-input" placeholder="npr. 1" style="max-width:220px" oninput="gqlUpdateByIdPreview()">
+                <p class="gql-hint" style="margin-top:0.75rem">Odaberite polja:</p>
+                <div class="gql-fields-row">
+                    <label class="gql-chk"><input type="checkbox" id="gqlf-byid-id" checked onchange="gqlUpdateByIdPreview()"> ID</label>
+                    <label class="gql-chk"><input type="checkbox" id="gqlf-byid-name" checked onchange="gqlUpdateByIdPreview()"> Name</label>
+                    <label class="gql-chk"><input type="checkbox" id="gqlf-byid-status" checked onchange="gqlUpdateByIdPreview()"> Status</label>
+                    <label class="gql-chk"><input type="checkbox" id="gqlf-byid-signOnMode" checked onchange="gqlUpdateByIdPreview()"> SignOnMode</label>
+                    <label class="gql-chk"><input type="checkbox" id="gqlf-byid-label" checked onchange="gqlUpdateByIdPreview()"> Label</label>
+                    <label class="gql-chk"><input type="checkbox" id="gqlf-byid-email" checked onchange="gqlUpdateByIdPreview()"> ExternalId</label>
+                </div>
+                <pre id="gql-byid-preview" class="gql-query-preview">{ application(id: ?) { id name status signOnMode label externalId } }</pre>
+                <button class="btn-primary gql-run-btn" onclick="gqlRunById()">&#9654; Pokreni</button>
+                <pre id="gql-byid-result" class="gql-code-dark"></pre>
+            </div>
+
+            <div id="gql-panel-add" class="card gql-panel hidden">
+                <h3>Dodaj aplikacija</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="field-label" for="gql-add-name">Naziv</label>
+                        <input type="text" id="gql-add-name" placeholder="Naziv aplikacijaa">
+                    </div>
+                    <div class="form-group">
+                        <label class="field-label" for="gql-add-email">External ID podnositelja</label>
+                        <input type="email" id="gql-add-email" placeholder="email@example.com">
+                    </div>
+                </div>
+                <label class="field-label" for="gql-add-label">Labela</label>
+                <textarea id="gql-add-label" rows="3" placeholder="Opišite problem..."></textarea>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="field-label" for="gql-add-status">Status</label>
+                        <select id="gql-add-status">
+                            <option value="open">open</option>
+                            <option value="pending">pending</option>
+                            <option value="solved">solved</option>
+                            <option value="closed">closed</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="field-label" for="gql-add-signOnMode">Sign-on mode</label>
+                        <select id="gql-add-signOnMode">
+                            <option value="low">low</option>
+                            <option value="normal" selected>normal</option>
+                            <option value="high">high</option>
+                            <option value="urgent">urgent</option>
+                        </select>
+                    </div>
+                </div>
+                <button class="btn-success gql-run-btn" id="gql-add-btn" onclick="gqlRunAdd()">Kreiraj aplikacija</button>
+                <pre id="gql-add-result" class="gql-code-dark"></pre>
+            </div>
+
+            <div id="gql-panel-edit" class="card gql-panel hidden">
+                <h3>Uredi aplikacija</h3>
+                <label class="field-label" for="gql-upd-id">ID aplikacijaa</label>
+                <input type="number" id="gql-upd-id" placeholder="npr. 1" style="max-width:220px">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="field-label" for="gql-upd-name">Naziv</label>
+                        <input type="text" id="gql-upd-name" placeholder="Naziv aplikacijaa">
+                    </div>
+                    <div class="form-group">
+                        <label class="field-label" for="gql-upd-email">External ID podnositelja</label>
+                        <input type="email" id="gql-upd-email" placeholder="email@example.com">
+                    </div>
+                </div>
+                <label class="field-label" for="gql-upd-label">Labela</label>
+                <textarea id="gql-upd-label" rows="3" placeholder="Opišite problem..."></textarea>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="field-label" for="gql-upd-status">Status</label>
+                        <select id="gql-upd-status">
+                            <option value="open">open</option>
+                            <option value="pending">pending</option>
+                            <option value="solved">solved</option>
+                            <option value="closed">closed</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="field-label" for="gql-upd-signOnMode">Sign-on mode</label>
+                        <select id="gql-upd-signOnMode">
+                            <option value="low">low</option>
+                            <option value="normal" selected>normal</option>
+                            <option value="high">high</option>
+                            <option value="urgent">urgent</option>
+                        </select>
+                    </div>
+                </div>
+                <button class="btn-primary gql-run-btn" id="gql-upd-btn" onclick="gqlRunUpdate()">Spremi izmjene</button>
+                <pre id="gql-upd-result" class="gql-code-dark"></pre>
+            </div>
+
+            <div id="gql-panel-delete" class="card gql-panel hidden">
+                <h3>Briši aplikacija</h3>
+                <label class="field-label" for="gql-del-id">ID aplikacijaa</label>
+                <input type="number" id="gql-del-id" placeholder="npr. 1" style="max-width:220px">
+                <p class="gql-hint">Kliknite gumb za pokretanje — dijalog za potvrdu prikazat će se automatski.</p>
+                <button class="btn-danger gql-run-btn" id="gql-del-btn" onclick="gqlRunDelete()">Obriši aplikacija</button>
+                <pre id="gql-del-result" class="gql-code-dark"></pre>
+            </div>
+            <div class="gql-legacy-hidden" aria-hidden="true">
+                <div id="gql-create-card">
+                    <input type="text" id="gql-name">
+                    <input type="email" id="gql-email">
+                    <textarea id="gql-label"></textarea>
+                    <select id="gql-status">
+                        <option value="open">open</option>
+                        <option value="pending">pending</option>
+                        <option value="solved">solved</option>
+                        <option value="closed">closed</option>
+                    </select>
+                    <select id="gql-signOnMode">
+                        <option value="low">low</option>
+                        <option value="normal">normal</option>
+                        <option value="high">high</option>
+                        <option value="urgent">urgent</option>
+                    </select>
+                    <button id="gql-create-btn" onclick="gqlCreateApplication()">Kreiraj aplikacija</button>
+                    <p id="gql-create-msg"></p>
+                </div>
+                <div id="gql-loading" class="gql-state hidden"><div class="spinner-ring"></div> Učitavanje...</div>
+                <div id="gql-empty" class="gql-state hidden">Nema aplikacijaa za prikaz.</div>
+                <table id="gql-table">
+                    <thead><tr>
+                        <th>ID</th><th>Naziv</th><th>Status</th><th>Sign-on mode</th><th>External ID</th>
+                        <th id="gql-actions-col">Akcije</th>
+                    </tr></thead>
+                    <tbody id="gql-applications-body"></tbody>
+                </table>
+            </div>
+
+        </div>
+
+        <div id="tab-validate" class="hidden">
+            <div class="card">
+                <h3>Validacija i import</h3>
+                <p class="gql-hint">Ovdje možete importati aplikaciju kroz JSON ili XML. Aplikacija se neće spremiti ako JSON schema ili XML/XSD validacija ne prođe.</p>
+
+                <div id="validationImportForm" class="admin-only">
+                    <div class="format-tabs tabs">
+                        <button class="tab active" onclick="setFormat('json', event)">JSON</button>
+                        <button class="tab" onclick="setFormat('xml', event)">XML</button>
+                    </div>
+
+                    <textarea id="applicationInput" rows="8" placeholder="Unesite JSON ili XML..."></textarea>
+                    <button class="btn-success" onclick="importApplication()">Validiraj i importaj</button>
+                    <p id="importMsg"></p>
+
+                    <details>
+                        <summary>Primjer JSON</summary>
+                        <pre>{
+  "name": "Primjer aplikacijaa",
+  "label": "Labela problema",
+  "status": "open",
+  "signOnMode": "normal",
+  "externalId": "test@example.com"
+}</pre>
+                    </details>
+
+                    <details>
+                        <summary>Primjer XML</summary>
+                        <pre>&lt;application&gt;
+  &lt;name&gt;XML aplikacija&lt;/name&gt;
+  &lt;label&gt;Labela&lt;/label&gt;
+  &lt;status&gt;open&lt;/status&gt;
+  &lt;signOnMode&gt;normal&lt;/signOnMode&gt;
+  &lt;externalId&gt;test@example.com&lt;/externalId&gt;
+&lt;/application&gt;</pre>
+                    </details>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>Provjera generiranog XML-a</h3>
+                <p class="gql-hint">Generira XML iz trenutno spremljenih aplikacija i provjerava podatke.</p>
+                <button class="btn-primary" onclick="validateXml()">Validiraj spremljene aplikacije</button>
+                <ul id="validateResult"></ul>
+            </div>
+        </div>
+
+        <div id="tab-okta" class="hidden">
+            <div class="card">
+                <h3>Okta Prekidač</h3>
+                <p class="okta-note">
+                    Kontrolira se u <code>application.properties</code> → <code>app.use-public-api</code>
+                </p>
+                <button class="btn-primary" onclick="getOkta()">Dohvati aplikacijae</button>
+                <pre id="oktaResult"></pre>
+            </div>
+        </div>
+
+    </main>
+</div>
+
+<div id="editModal" class="modal-overlay hidden" onclick="closeEditModal()">
+    <div class="modal" onclick="event.stopPropagation()">
+        <h3>Uredi aplikacija</h3>
+        <input type="hidden" id="editApplicationId">
+
+        <label for="editName">Naziv</label>
+        <input type="text" id="editName" placeholder="Naziv aplikacijaa">
+
+        <label for="editLabel">Labela</label>
+        <textarea id="editLabel" rows="3" placeholder="Labela aplikacijaa"></textarea>
+
+        <label for="editStatus">Status</label>
+        <select id="editStatus">
+            <option value="open">open</option>
+            <option value="pending">pending</option>
+            <option value="solved">solved</option>
+            <option value="closed">closed</option>
+        </select>
+
+        <label for="editSignOnMode">Sign-on mode</label>
+        <select id="editSignOnMode">
+            <option value="low">low</option>
+            <option value="normal">normal</option>
+            <option value="high">high</option>
+            <option value="urgent">urgent</option>
+        </select>
+
+        <label for="editExternalId">External ID</label>
+        <input type="email" id="editExternalId" placeholder="email@example.com">
+
+        <div class="modal-actions">
+            <button class="btn-success" onclick="updateApplication()">Spremi</button>
+            <button class="btn-secondary" onclick="closeEditModal()">Odustani</button>
+        </div>
+        <p id="editMsg"></p>
+    </div>
+</div>
+
+<div id="gqlEditModal" class="modal-overlay hidden" onclick="gqlCloseEdit()">
+    <div class="modal" onclick="event.stopPropagation()">
+        <h3>Uredi aplikacija</h3>
+        <input type="hidden" id="gql-edit-id">
+
+        <label class="field-label" for="gql-edit-name">Naziv</label>
+        <input type="text" id="gql-edit-name" placeholder="Naziv aplikacijaa">
+
+        <label class="field-label" for="gql-edit-label">Labela</label>
+        <textarea id="gql-edit-label" rows="3" placeholder="Labela aplikacijaa"></textarea>
+
+        <label class="field-label" for="gql-edit-status">Status</label>
+        <select id="gql-edit-status">
+            <option value="open">open</option>
+            <option value="pending">pending</option>
+            <option value="solved">solved</option>
+            <option value="closed">closed</option>
+        </select>
+
+        <label class="field-label" for="gql-edit-signOnMode">Sign-on mode</label>
+        <select id="gql-edit-signOnMode">
+            <option value="low">low</option>
+            <option value="normal">normal</option>
+            <option value="high">high</option>
+            <option value="urgent">urgent</option>
+        </select>
+
+        <label class="field-label" for="gql-edit-email">External ID podnositelja</label>
+        <input type="email" id="gql-edit-email" placeholder="email@example.com">
+
+        <div class="modal-actions">
+            <button class="btn-success" id="gql-save-btn" onclick="gqlSaveEdit()">Spremi</button>
+            <button class="btn-secondary" onclick="gqlCloseEdit()">Odustani</button>
+        </div>
+        <p id="gql-edit-msg"></p>
+    </div>
+</div>
+
+<script src="app.js"></script>
 </body>
 </html>
+

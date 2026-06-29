@@ -1,0 +1,19 @@
+type Query {
+    applications: [Application]
+    application(id: ID!): Application
+}
+
+type Mutation {
+    createApplication(externalId: String, name: String!, label: String!, status: String!, signOnMode: String!): Application
+    updateApplication(id: ID!, externalId: String, name: String!, label: String!, status: String!, signOnMode: String!): Application
+    deleteApplication(id: ID!): Boolean
+}
+
+type Application {
+    id: ID
+    externalId: String
+    name: String
+    label: String
+    status: String
+    signOnMode: String
+}

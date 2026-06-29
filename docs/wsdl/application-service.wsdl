@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://schemas.xmlsoap.org/wsdl/"
+             xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+             xmlns:tns="http://soap.iis.algebra.hr/"
+             xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+             targetNamespace="http://soap.iis.algebra.hr/"
+             name="ApplicationService">
+    <types>
+        <xsd:schema targetNamespace="http://soap.iis.algebra.hr/">
+            <xsd:element name="searchApplications">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="keyword" type="xsd:string" minOccurs="0"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="searchApplicationsResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="return" type="xsd:string" minOccurs="0"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+        </xsd:schema>
+    </types>
+    <message name="searchApplications">
+        <part name="parameters" element="tns:searchApplications"/>
+    </message>
+    <message name="searchApplicationsResponse">
+        <part name="parameters" element="tns:searchApplicationsResponse"/>
+    </message>
+    <portType name="ApplicationSoapService">
+        <operation name="searchApplications">
+            <input message="tns:searchApplications"/>
+            <output message="tns:searchApplicationsResponse"/>
+        </operation>
+    </portType>
+    <binding name="ApplicationSoapServicePortBinding" type="tns:ApplicationSoapService">
+        <soap:binding transport="http://schemas.xmlsoap.org/soap/http" style="document"/>
+        <operation name="searchApplications">
+            <soap:operation soapAction=""/>
+            <input><soap:body use="literal"/></input>
+            <output><soap:body use="literal"/></output>
+        </operation>
+    </binding>
+    <service name="ApplicationService">
+        <port name="ApplicationSoapServicePort" binding="tns:ApplicationSoapServicePortBinding">
+            <soap:address location="http://localhost:8080/ws/applications"/>
+        </port>
+    </service>
+</definitions>
