@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wsdl:definitions
+        xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+        xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+        xmlns:tns="https://algebra.hr/iis/okta/applications"
+        xmlns:xs="http://www.w3.org/2001/XMLSchema"
+        targetNamespace="https://algebra.hr/iis/okta/applications"
+        name="ApplicationSearchService">
+
+    <wsdl:types>
+        <xs:schema targetNamespace="https://algebra.hr/iis/okta/applications" elementFormDefault="qualified">
+            <xs:element name="searchApplications">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="searchTerm" type="xs:string" minOccurs="0"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+
+            <xs:element name="ApplicationSearchResponse" type="tns:ApplicationSearchResponse"/>
+
+            <xs:complexType name="ApplicationSearchResponse">
+                <xs:sequence>
+                    <xs:element name="searchTerm" type="xs:string"/>
+                    <xs:element name="xmlValid" type="xs:boolean"/>
+                    <xs:element name="validationMessages" minOccurs="0">
+                        <xs:complexType>
+                            <xs:sequence>
+                                <xs:element name="message" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+                            </xs:sequence>
+                        </xs:complexType>
+                    </xs:element>
+                    <xs:element name="applications" minOccurs="0">
+                        <xs:complexType>
+                            <xs:sequence>
+                                <xs:element name="application" type="tns:Application" minOccurs="0" maxOccurs="unbounded"/>
+                            </xs:sequence>
+                        </xs:complexType>
+                    </xs:element>
+                </xs:sequence>
+            </xs:complexType>
+
+            <xs:complexType name="Application">
+                <xs:sequence>
+                    <xs:element name="resourceId" type="xs:string"/>
+                    <xs:element name="localId" type="xs:long" minOccurs="0"/>
+                    <xs:element name="externalId" type="xs:string" minOccurs="0"/>
+                    <xs:element name="name" type="xs:string"/>
+                    <xs:element name="label" type="xs:string"/>
+                    <xs:element name="status" type="xs:string"/>
+                    <xs:element name="signOnMode" type="xs:string"/>
+                    <xs:element name="createdAt" type="xs:string" minOccurs="0"/>
+                    <xs:element name="updatedAt" type="xs:string" minOccurs="0"/>
+                </xs:sequence>
+            </xs:complexType>
+        </xs:schema>
+    </wsdl:types>
+
+    <wsdl:message name="searchApplicationsRequest">
+        <wsdl:part name="parameters" element="tns:searchApplications"/>
+    </wsdl:message>
+
+    <wsdl:message name="searchApplicationsResponse">
+        <wsdl:part name="parameters" element="tns:ApplicationSearchResponse"/>
+    </wsdl:message>
+
+    <wsdl:portType name="ApplicationSearchPort">
+        <wsdl:operation name="searchApplications">
+            <wsdl:input message="tns:searchApplicationsRequest"/>
+            <wsdl:output message="tns:searchApplicationsResponse"/>
+        </wsdl:operation>
+    </wsdl:portType>
+
+    <wsdl:binding name="ApplicationSearchServiceSoapBinding" type="tns:ApplicationSearchPort">
+        <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+        <wsdl:operation name="searchApplications">
+            <soap:operation soapAction="" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+    </wsdl:binding>
+
+    <wsdl:service name="ApplicationSearchService">
+        <wsdl:port name="ApplicationSearchPort" binding="tns:ApplicationSearchServiceSoapBinding">
+            <soap:address location="http://localhost:8080/ws/applications"/>
+        </wsdl:port>
+    </wsdl:service>
+</wsdl:definitions>

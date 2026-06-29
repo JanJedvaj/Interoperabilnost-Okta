@@ -14,4 +14,4 @@ Invoke-WebRequest `
   -OutFile "docs/wsdl/application-search-service.wsdl"
 ```
 
-`application-search-service.wsdl` treba commitati nakon što je SOAP ugovor stabilan.
+`application-search-service.wsdl` je spremljen u ovaj folder. Ako se SOAP ugovor promijeni, ponovno pokreni aplikaciju i osvježi file istom naredbom.

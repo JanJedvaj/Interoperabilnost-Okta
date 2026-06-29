@@ -30,9 +30,11 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
+                        .requestMatchers("/", "/index.html", "/app.css", "/app.js", "/favicon.ico").permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/graphiql/**", "/graphql").hasAnyRole(READ_ONLY, FULL_ACCESS)
                         .requestMatchers("/ws/**").hasAnyRole(READ_ONLY, FULL_ACCESS)
+                        .requestMatchers(HttpMethod.GET, "/api/weather/**").hasAnyRole(READ_ONLY, FULL_ACCESS)
                         .requestMatchers(HttpMethod.GET, "/api/applications/**", "/api/okta/applications/**")
                         .hasAnyRole(READ_ONLY, FULL_ACCESS)
                         .requestMatchers(HttpMethod.POST, "/api/applications/**", "/api/okta/applications/**")

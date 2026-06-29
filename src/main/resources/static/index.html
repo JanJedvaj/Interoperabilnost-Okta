@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="hr">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Interoperability Okta</title>
+    <link rel="stylesheet" href="/app.css">
+</head>
+<body>
+<header class="hero">
+    <div>
+        <p class="eyebrow">Information Systems Interoperability</p>
+        <h1>Okta Applications Console</h1>
+        <p class="subtitle">
+            REST, SOAP, gRPC/DHMZ, GraphQL i JWT role u jednom demo sučelju.
+        </p>
+    </div>
+    <div class="session-card">
+        <span id="roleBadge" class="badge">Niste prijavljeni</span>
+        <button id="logoutButton" class="secondary hidden">Logout</button>
+    </div>
+</header>
+
+<main>
+    <section id="loginPanel" class="panel login-panel">
+        <div>
+            <h2>Login</h2>
+            <p>Demo korisnici: <code>reader / reader123</code> ili <code>admin / admin123</code>.</p>
+        </div>
+        <form id="loginForm" class="grid-form">
+            <label>
+                Username
+                <input id="username" autocomplete="username" value="admin" required>
+            </label>
+            <label>
+                Password
+                <input id="password" type="password" autocomplete="current-password" value="admin123" required>
+            </label>
+            <button type="submit">Prijava</button>
+        </form>
+    </section>
+
+    <section id="appPanel" class="hidden">
+        <nav class="tabs" aria-label="Demo modules">
+            <button class="tab active" data-tab="applications">Applications</button>
+            <button class="tab" data-tab="import">JSON/XML Import</button>
+            <button class="tab" data-tab="okta">Okta Sync</button>
+            <button class="tab" data-tab="soap">SOAP XPath</button>
+            <button class="tab" data-tab="weather">DHMZ</button>
+            <button class="tab" data-tab="graphql">GraphQL</button>
+        </nav>
+
+        <section class="panel tab-panel" data-panel="applications">
+            <div class="panel-title">
+                <div>
+                    <h2>Applications</h2>
+                    <p>Read radi za obje role; write akcije su dostupne samo za <code>FULL_ACCESS</code>.</p>
+                </div>
+                <button id="loadApplicationsButton">Učitaj aplikacije</button>
+            </div>
+
+            <form id="applicationForm" class="grid-form full-access-only">
+                <input type="hidden" id="applicationId">
+                <label>External ID <input id="externalId" placeholder="okta-app-id"></label>
+                <label>Name <input id="name" placeholder="bookmark_app" required></label>
+                <label>Label <input id="label" placeholder="Demo App" required></label>
+                <label>Status <input id="status" value="ACTIVE" required></label>
+                <label>Sign-on mode <input id="signOnMode" value="BOOKMARK" required></label>
+                <div class="button-row">
+                    <button type="submit">Spremi</button>
+                    <button type="button" id="resetApplicationForm" class="secondary">Reset</button>
+                </div>
+            </form>
+
+            <div id="applicationsList" class="cards"></div>
+        </section>
+
+        <section class="panel tab-panel hidden" data-panel="import">
+            <h2>JSON/XML Import</h2>
+            <p>Dokument se validira prije spremanja u bazu.</p>
+            <div class="split">
+                <form id="jsonImportForm">
+                    <label>JSON document</label>
+                    <textarea id="jsonImportDocument" rows="12">{
+  "externalId": "json-demo",
+  "name": "bookmark_app",
+  "label": "JSON Demo",
+  "status": "ACTIVE",
+  "signOnMode": "BOOKMARK"
+}</textarea>
+                    <button class="full-access-only" type="submit">Import JSON</button>
+                </form>
+                <form id="xmlImportForm">
+                    <label>XML document</label>
+                    <textarea id="xmlImportDocument" rows="12">&lt;application&gt;
+  &lt;externalId&gt;xml-demo&lt;/externalId&gt;
+  &lt;name&gt;bookmark_app&lt;/name&gt;
+  &lt;label&gt;XML Demo&lt;/label&gt;
+  &lt;status&gt;ACTIVE&lt;/status&gt;
+  &lt;signOnMode&gt;BOOKMARK&lt;/signOnMode&gt;
+&lt;/application&gt;</textarea>
+                    <button class="full-access-only" type="submit">Import XML</button>
+                </form>
+            </div>
+        </section>
+
+        <section class="panel tab-panel hidden" data-panel="okta">
+            <h2>Okta</h2>
+            <p>Backend poziva Oktu s <code>Authorization: SSWS {OKTA_API_TOKEN}</code>. Token nikad ne ide u browser.</p>
+            <div class="button-row">
+                <button id="loadOktaButton">Učitaj direktno iz Okte</button>
+                <button id="syncOktaButton" class="full-access-only">Sync Okta → Local DB</button>
+            </div>
+            <div id="oktaResult" class="cards"></div>
+        </section>
+
+        <section class="panel tab-panel hidden" data-panel="soap">
+            <h2>SOAP XPath search</h2>
+            <p>SOAP servis generira XML snapshot, validira ga i pretražuje XPathom.</p>
+            <form id="soapForm" class="inline-form">
+                <input id="soapSearchTerm" placeholder="npr. CRM, ACTIVE, SAML" required>
+                <button type="submit">Pretraži SOAP</button>
+            </form>
+            <pre id="soapResult" class="result-box"></pre>
+        </section>
+
+        <section class="panel tab-panel hidden" data-panel="weather">
+            <h2>DHMZ weather</h2>
+            <p>Web klijent koristi REST adapter, a backend ima gRPC servis na portu 9090.</p>
+            <form id="weatherForm" class="inline-form">
+                <input id="weatherQuery" placeholder="zag" value="zag">
+                <button type="submit">Pretraži gradove</button>
+            </form>
+            <div id="weatherResult" class="cards"></div>
+        </section>
+
+        <section class="panel tab-panel hidden" data-panel="graphql">
+            <h2>GraphQL</h2>
+            <p>Query radi za obje role, mutation samo za <code>FULL_ACCESS</code>.</p>
+            <form id="graphqlForm">
+                <textarea id="graphqlQuery" rows="12">query {
+  applications {
+    resourceId
+    externalId
+    name
+    label
+    status
+    signOnMode
+  }
+}</textarea>
+                <button type="submit">Execute</button>
+            </form>
+            <pre id="graphqlResult" class="result-box"></pre>
+        </section>
+    </section>
+
+    <section class="panel">
+        <h2>Status</h2>
+        <pre id="statusBox" class="result-box">Spremno.</pre>
+    </section>
+</main>
+
+<script src="/app.js"></script>
+</body>
+</html>
